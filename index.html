@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es-BO">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#1F5F4A" />
+  <meta name="description" content="Registros Básicos — Sistema clínico para guías de práctica, vademécum, vacunación, vigilancia epidemiológica, valoración nutricional y subsidios prenatales (Bolivia)." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Registros Básicos" />
+
+  <title>Registros Básicos · Sistema Clínico</title>
+
+  <!-- Íconos -->
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+
+  <!-- Tipografías -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/components.css">
+
+  <!-- Splash inline para aparición instantánea -->
+  <style>
+    #rb-splash {
+      position: fixed; inset: 0; z-index: 999999;
+      background: linear-gradient(135deg, #1F5F4A 0%, #164035 100%);
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 400ms ease, visibility 400ms ease;
+    }
+    #rb-splash.is-hidden { opacity: 0; visibility: hidden; }
+    .rb-splash-inner { text-align: center; color: #fff; font-family: system-ui, sans-serif; padding: 24px; }
+    .rb-splash-logo {
+      width: 72px; height: 72px; margin: 0 auto 16px;
+      border-radius: 18px; background: rgba(255,255,255,0.15);
+      display: grid; place-items: center;
+      font-size: 40px; font-weight: 700; font-family: Georgia, 'Times New Roman', serif;
+      animation: rbPulse 1.6s ease-in-out infinite;
+    }
+    .rb-splash-title { font-size: 20px; font-weight: 600; letter-spacing: 0.02em; margin-bottom: 20px; }
+    .rb-splash-bar { width: 200px; height: 4px; margin: 0 auto 12px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
+    .rb-splash-fill { height: 100%; width: 30%; background: #fff; border-radius: 4px; animation: rbLoad 1.4s ease-in-out infinite; }
+    .rb-splash-msg { font-size: 13px; opacity: 0.85; }
+    @keyframes rbPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.06); opacity: 0.85; } }
+    @keyframes rbLoad { 0% { margin-left: -30%; } 100% { margin-left: 100%; } }
+  </style>
+
+  <!-- Fuse.js (búsqueda fuzzy) -->
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+</head>
+<body>
+
+  <!-- Splash de carga: visible al instante, se oculta cuando la app está lista -->
+  <div id="rb-splash" aria-hidden="true">
+    <div class="rb-splash-inner">
+      <div class="rb-splash-logo">R</div>
+      <div class="rb-splash-title">Registros Básicos</div>
+      <div class="rb-splash-bar"><div class="rb-splash-fill"></div></div>
+      <div class="rb-splash-msg" id="rb-splash-msg">Iniciando…</div>
+    </div>
+  </div>
+
+  <!-- El shell (header, nav, main, footer) lo construye app.js dinámicamente -->
+  <!-- Esto centraliza la generación y evita inconsistencias entre HTML y JS -->
+
+  <!-- Scripts en orden: utilidades → indexador → auth → bootstrap → módulos -->
+  <script src="js/state.js"></script>
+  <script src="js/modal-editor.js"></script>
+  <script src="js/excel-io.js"></script>
+  <script src="js/news-feed.js"></script>
+  <script src="js/announcement.js"></script>
+  <script src="js/roles.js"></script>
+  <script src="js/backup.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/obstetric.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Renderers de cada módulo -->
+  <script src="js/modules/m1-m5-m9.js"></script>
+  <script src="js/modules/m2-nutricion.js"></script>
+  <script src="js/modules/m3-gestante.js"></script>
+  <script src="js/modules/m4-vademecum.js"></script>
+  <script src="js/modules/m6-clinica.js"></script>
+  <script src="js/modules/m7-pai-vigil.js"></script>
+  <script src="js/modules/m8-suppv-bja.js"></script>
+  <script src="js/modules/m10-seguimiento.js"></script>
+
+  <!-- Service Worker (offline-first) con auto-actualización -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => {
+            console.log('[SW] registrado:', reg.scope);
+            // Buscar actualizaciones cada vez que se carga
+            reg.update();
+            // Detectar nuevo SW esperando
+            reg.addEventListener('updatefound', () => {
+              const nw = reg.installing;
+              if (!nw) return;
+              nw.addEventListener('statechange', () => {
+                if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                  // Hay una versión nueva lista
+                  mostrarBannerActualizacion();
+                }
+              });
+            });
+          })
+          .catch(err => console.warn('[SW] error al registrar:', err));
+
+        // Recargar automáticamente cuando el nuevo SW toma control
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
+      });
+
+      function mostrarBannerActualizacion() {
+        if (document.getElementById('rb-update-banner')) return;
+        const b = document.createElement('div');
+        b.id = 'rb-update-banner';
+        b.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:99999;background:#1F5F4A;color:#fff;padding:12px 20px;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,0.3);display:flex;gap:12px;align-items:center;font-family:system-ui,sans-serif;font-size:14px;';
+        b.innerHTML = '🔄 Hay una versión nueva disponible. <button id="rb-update-btn" style="background:#fff;color:#1F5F4A;border:none;padding:6px 14px;border-radius:6px;font-weight:600;cursor:pointer;">Actualizar ahora</button>';
+        document.body.appendChild(b);
+        document.getElementById('rb-update-btn').addEventListener('click', () => {
+          navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg && reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            else window.location.reload();
+          });
+        });
+      }
+    }
+  </script>
+
+  <!-- Las BD se cargan dinámicamente desde app.js bootstrap():
+       data/db_vademecum.js (525 KB), data/db_pai.js, data/db_vigilancia.js
+       data/db_patologias.js (1.9 MB) solo cuando se entra a Clínica -->
+</body>
+</html>

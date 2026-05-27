@@ -1,0 +1,25 @@
+{
+  "name": "Registros Básicos · Sistema Clínico",
+  "short_name": "Registros Básicos",
+  "description": "Sistema clínico integral: vademécum LINAME, patologías Ley 475, PAI, vigilancia, valoración nutricional y subsidios prenatales (Bolivia).",
+  "lang": "es-BO",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FAF8F4",
+  "theme_color": "#1F5F4A",
+  "categories": ["medical", "health", "productivity", "education"],
+  "icons": [
+    { "src": "icons/icon-192.png",          "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png",          "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Vademécum", "short_name": "LINAME", "url": "./index.html?tab=vademecum" },
+    { "name": "Clínica",   "short_name": "Patologías", "url": "./index.html?tab=clinica" },
+    { "name": "SUPPV/BJA", "short_name": "Subsidios", "url": "./index.html?tab=suppv-bja" }
+  ]
+}
